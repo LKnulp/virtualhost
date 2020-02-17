@@ -5,14 +5,13 @@ TEXTDOMAIN=virtualhost
 ### Set default parameters
 action=$1
 domain=$2
-rootDir=$3
-owner=$(who am i | awk '{print $1}')
+relativeRootDir=${3:-''}
+owner=
 apacheUser=$(ps -ef | egrep '(httpd|apache2|apache)' | grep -v root | head -n1 | awk '{print $1}')
-email='webmaster@localhost'
+email='leonhard.kaemmerer@atrivio.de'
 sitesEnabled='/etc/apache2/sites-enabled/'
 sitesAvailable='/etc/apache2/sites-available/'
-userDir='/var/www/'
-sitesAvailabledomain=$sitesAvailable$domain.conf
+webDir='/var/www/'
 
 ### don't modify from here unless you know what you are doing ####
 
@@ -33,16 +32,9 @@ do
 	read domain
 done
 
-if [ "$rootDir" == "" ]; then
-	rootDir=${domain//./}
-fi
-
-### if root dir starts with '/', don't use /var/www as default starting point
-if [[ "$rootDir" =~ ^/ ]]; then
-	userDir=''
-fi
-
-rootDir=$userDir$rootDir
+appDir=$webDir$domain
+webRoot=$appDir/$relativeRootDir
+sitesAvailabledomain=$sitesAvailable$domain.conf
 
 if [ "$action" == 'create' ]
 	then
@@ -53,18 +45,27 @@ if [ "$action" == 'create' ]
 		fi
 
 		### check if directory exists or not
-		if ! [ -d $rootDir ]; then
+		if ! [ -d $appDir ]; then
 			### create the directory
-			mkdir $rootDir
+			mkdir $appDir
+            chown $owner:$owner $appDir
 			### give permission to root dir
-			chmod 755 $rootDir
+			chmod 775 $appDir
+
+            ### create lower root directory if necessary
+            if ! ["$relativeRootDir" == ""]; then
+                mkdir $webRoot
+                chown $owner:$owner $webRoot
+                chmod 775 $webRoot
+            fi
+
 			### write test file in the new domain dir
-			if ! echo "<?php echo phpinfo(); ?>" > $rootDir/phpinfo.php
+			if ! echo "<?php echo phpinfo(); ?>" > $webRoot/phpinfo.php
 			then
-				echo $"ERROR: Not able to write in file $rootDir/phpinfo.php. Please check permissions"
+				echo $"ERROR: Not able to write in file $webRoot/phpinfo.php. Please check permissions"
 				exit;
 			else
-				echo $"Added content to $rootDir/phpinfo.php"
+				echo $"Added content to $webRoot/phpinfo.php"
 			fi
 		fi
 
@@ -74,11 +75,11 @@ if [ "$action" == 'create' ]
 			ServerAdmin $email
 			ServerName $domain
 			ServerAlias $domain
-			DocumentRoot $rootDir
+			DocumentRoot $webRoot
 			<Directory />
 				AllowOverride All
 			</Directory>
-			<Directory $rootDir>
+			<Directory $webRoot>
 				Options Indexes FollowSymLinks MultiViews
 				AllowOverride all
 				Require all granted
@@ -117,12 +118,12 @@ if [ "$action" == 'create' ]
 		if [ "$owner" == "" ]; then
 			iam=$(whoami)
 			if [ "$iam" == "root" ]; then
-				chown -R $apacheUser:$apacheUser $rootDir
+				chown -R $apacheUser:$apacheUser $appDir
 			else
-				chown -R $iam:$iam $rootDir
+				chown -R $iam:$iam $appDir
 			fi
 		else
-			chown -R $owner:$owner $rootDir
+			chown -R $owner:$owner $appDir
 		fi
 
 		### enable website
@@ -132,7 +133,7 @@ if [ "$action" == 'create' ]
 		/etc/init.d/apache2 reload
 
 		### show the finished message
-		echo -e $"Complete! \nYou now have a new Virtual Host \nYour new host is: http://$domain \nAnd its located at $rootDir"
+		echo -e $"Complete! \nYou now have a new Virtual Host \nYour new host is: http://$domain \nAnd its located at $appDir"
 		exit;
 	else
 		### check whether domain already exists
@@ -162,13 +163,14 @@ if [ "$action" == 'create' ]
 		fi
 
 		### check if directory exists or not
-		if [ -d $rootDir ]; then
+		if [ -d $appDir ]; then
 			echo -e $"Delete host root directory ? (y/n)"
 			read deldir
 
 			if [ "$deldir" == 'y' -o "$deldir" == 'Y' ]; then
 				### Delete the directory
-				rm -rf $rootDir
+				rm -rf $appDir
+                rm $domain
 				echo -e $"Directory deleted"
 			else
 				echo -e $"Host directory conserved"
