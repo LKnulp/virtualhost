@@ -34,26 +34,26 @@ $ chmod +x virtualhost-nginx
 Basic command line syntax:
 
 ```bash
-$ sudo sh /path/to/virtualhost.sh [create | delete] [domain] [optional host_dir]
+$ sudo sh /path/to/virtualhost.sh [create | delete] [domain] [optional root_dir]
 ```
 
 With script installed on /usr/local/bin
 
 ```bash
-$ sudo virtualhost [create | delete] [domain] [optional host_dir]
+$ sudo virtualhost [create | delete] [domain] [optional root_dir]
 ```
 
 ### Examples ###
 
-to create a new virtual host:
+to create a new virtual host under /var/www/mysite.dev:
 
 ```bash
 $ sudo virtualhost create mysite.dev
 ```
-to create a new virtual host with custom directory name:
+to create a new virtual host with deeper root-dir /var/www/anothersite.dev/my_dir:
 
 ```bash
-$ sudo virtualhost create anothersite.dev my_dir
+$ sudo virtualhost create anothersite.dev /my_dir
 ```
 to delete a virtual host
 
@@ -61,11 +61,6 @@ to delete a virtual host
 $ sudo virtualhost delete mysite.dev
 ```
 
-to delete a virtual host with custom directory name:
-
-```
-$ sudo virtualhost delete anothersite.dev my_dir
-```
 ### Localization
 
 For Apache:
