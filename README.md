@@ -2,6 +2,7 @@ Virtualhost Manage Script
 ===========
 
 Bash Script to allow create or delete apache/nginx virtual hosts on Ubuntu on a quick way.
+It allows you to create a vhost.conf for laravel by setting the `/public`-directory within the vhost_dir/ app_dir as the document-root. 
 
 ## Installation ##
 
