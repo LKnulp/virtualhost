@@ -54,7 +54,7 @@ $ sudo virtualhost create mysite.dev
 to create a new virtual host with deeper root-dir /var/www/anothersite.dev/my_dir:
 
 ```bash
-$ sudo virtualhost create anothersite.dev /my_dir
+$ sudo virtualhost create anothersite.dev my_dir
 ```
 to delete a virtual host
 
