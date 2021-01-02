@@ -84,6 +84,10 @@ if [ "$action" == 'create' ]
 				AllowOverride all
 				Require all granted
 			</Directory>
+			<FilesMatch \.php$>
+				# 2.4.10+ can proxy to unix socket
+				SetHandler "proxy:unix:/var/run/php/php8.0-fpm.sock|fcgi://localhost"
+			</FilesMatch>
 			ErrorLog /var/log/apache2/$domain-error.log
 			LogLevel error
 			CustomLog /var/log/apache2/$domain-access.log combined
